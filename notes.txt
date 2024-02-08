@@ -1,0 +1,41 @@
+-> do not change the RPS_game.py file 
+-> write all of the code in the RPS.py file 
+-> use main.py to test the code
+-> imports are what get the functions defined in on .py file over to another file for use there 
+	-> e.g from name_of_file import name_of_function  
+
+Running the tests 
+-> the two players playing against each other are functions 
+	-> one is random -> the other is ours
+	-> we want this to learn which moves to play next
+	-> based off of the move which the random one just played
+	-> the random one makes a move -> and then we take what we know that was and guess which move to play next
+	-> we are then running tests
+		-> those are telling us whether the pass rate for the random bot was above 60%
+		-> if our function was tripe the pass rate for the game would be 50% against a random bot 
+		-> so our aim is for our function to learn what move to play next based off of the one which the opponent played previously 
+			-> then to have the game played using our function have a pass rate of 60%, for four different tests
+			-> so this tests it 
+			-> if the tests were randomly ran then the pass rate would be 50% -> the aim is to have the tests ran using our function be 60%
+-> you can run the tests by going into the terminal -> Python3 main.py
+-> the players playing each other are functions 	
+	-> the first one is random and the second one is ours (or vice versa)
+	-> there is an optional log you can turn on during the game 
+-> you're testing it using the Play function 
+	-> the arguments are 
+		-> two players to play against each other 
+		-> the number of games you want it to play 
+		-> a boolean which is to see the log of each game <- if the log is true you can see the messages 
+	-> an example run of this function 
+		-> play(player, quincy, 1000, verbose=True)
+		-> player and Quincy are playing each other 1,000 times 
+		-> and the log of of the test is set to on (verbose is True)
+	-> this function is in the main.py file <- this is the one you run to test the code 
+		-> the code which you are defining in the RPS.py file 
+
+To submit the project
+-> to submit the project, you push it to GitHub 
+-> and then you load it into Replit 
+-> and then you submit the URL for it to the assessment page for the first project on the course
+-> if that doesn't repeat the process with a basis version and you should be fine 
+-> if not then start migrating in your code and it should work 
