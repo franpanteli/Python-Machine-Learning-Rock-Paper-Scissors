@@ -189,7 +189,7 @@ TO UPDATE THE ARRAY WHICH STORES THE OPPONENT'S PLAYS:
         -> In other words, if we're starting the game from scratch 
         -> Then there is no previous play
         -> This is the argument to the function 
-        -> In which case, we initialize the opponent's history -> because they haven't had the chance to play any responses yet 
+        -> In which case, we initialise the opponent's history -> because they haven't had the chance to play any responses yet 
 
     If the previous play did exist: 
         -> When the previous play existed, know the opponent's play and our play
@@ -203,7 +203,7 @@ TO UPDATE THE ARRAY WHICH STORES THE OPPONENT'S PLAYS:
             -> So the array which stores their play history is empty
         -> Otherwise -> there is an opponent history 
             -> In this case, we are updating the array of previous plays by the opponent with the last play which they had 
-        -> Either we are initializing the array as empty for the first round -> or we are updating it with the opponent's last play 
+        -> Either we are initialising the array as empty for the first round -> or we are updating it with the opponent's last play 
         -> This builds the array of their previous plays
             -> We can call on this when using machine learning to predict what our next move (guess) should be (this is the output of this function)
 """
@@ -351,7 +351,7 @@ SETTING THE OUTPUT OF THE GUESS FUNCTION:
                 -> this history takes time to build -> one game is made up of three rounds of RPS
                 -> in between the start of the game and when we have enough information to sensibly train the model with, to make predictions about what our next guess should be, 
                         we are setting the value of what those (our) guesses should be 
-                -> this is what the model is returning -> a guess about what our next move should be to maximize the odds of winning the game 
+                -> this is what the model is returning -> a guess about what our next move should be to maximise the odds of winning the game 
                         -> or increase them above 50% -> which is what it would be when playing against a random opponent 
         
         The context we are operating in: 
@@ -386,56 +386,40 @@ SETTING THE OUTPUT OF THE GUESS FUNCTION:
         else:
             guess = random.choice(["P", "R", "S"])
 
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    
 """
-UPDATE THIS 
+CONVERTING THE RPS DATA OF THE OPPONENT INTO ARRAYS FOR TRAINING THE MODEL
 --------------------------------------------------------
-        -> 
-"""
--------------------------------------------------------- 
-    else:
-        if opponent_history[-1] == "P":
-            last = 0
-            array_last = np.array([1, 0, 0])
-        elif opponent_history[-1] == "R":
-            last = 1
-            array_last = np.array([0, 1, 0])
-        elif opponent_history[-1] == "S":
-            last = 2
-            array_last = np.array([0, 0, 1])
 
+This code converts the opponent's RPS moves into arrays for model training:
+   -> It formats the opponent's moves for our machine learning model.
+   -> Operates in the three rounds and more regime.
+      -> Each game has three rounds.
+      -> 'else' implies operating in the three or more rounds regime.
+         -> We have sufficient data at this point for predictions and model training.
+   -> Converts opponent's moves (R, P, S) into arrays understood by the model.
+   -> Handles not just the opponent's last move but also from multiple moves ago.
+
+Storing the opponent's last move in an array:
+   Explanation:
+      -> Uses one-hot encoded arrays for the neural network.
+      -> Each element represents R, P, or S.
+      -> Targets the most recent play of the opponent (opponent_history[-1]).
+      -> Encodes array_last based on the last move (P, R, or S).
+      -> Outputs:
+         -> array_last: Encodes the last move in a 1's and 0's array.
+         -> last: Stores the value of R, P, or S as a number between 0 and 2.
+"""
+    else:
+        # Encoding the opponent's recent plays into arrays and variables for model input
+        # -> Converts strings to numbers
+        if opponent_history[-1] == "P":
+            last, array_last = 0, np.array([1, 0, 0])
+        elif opponent_history[-1] == "R":
+            last, array_last = 1, np.array([0, 1, 0])
+        elif opponent_history[-1] == "S":
+            last, array_last = 2, np.array([0, 0, 1])
+
+        # Similar code as above for the opponent's penultimate play (n=-2)
         if opponent_history[-2] == "P":
             array_second_to_last = np.array([1, 0, 0])
         elif opponent_history[-2] == "R":
@@ -443,6 +427,7 @@ UPDATE THIS
         elif opponent_history[-2] == "S":
             array_second_to_last = np.array([0, 0, 1])
 
+        # Similar code for the opponent's play from three moves ago (n=-3)
         if opponent_history[-3] == "P":
             array_third_to_last = np.array([1, 0, 0])
         elif opponent_history[-3] == "R":
@@ -450,30 +435,22 @@ UPDATE THIS
         elif opponent_history[-3] == "S":
             array_third_to_last = np.array([0, 0, 1])
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        # Aim is to store opponent's plays from three matches ago for model training
+        # -> Included in an else block after three games have been played
+        # -> For the first three games, adapts strategy based on the previous game's outcome
+        # -> Converts play history into matrices/numbers for the neural network initialised earlier
+            
 """
-UPDATE THIS 
+CONVERTING OUR RPS DATA INTO ARRAYS FOR TRAINING THE MODEL
 --------------------------------------------------------
-        -> 
+   -> Exactly the same process as the previous block of code
+   -> Converts R, P, S string values into values for model training
+   -> Trains the model on the past three plays of both us and the opponent
+   -> my_history stores our past moves
 """
 
+        # Convert the value of our last play from a string (R, P, or S) into an array for the model to understand
+            # -> n = -1 
         if my_history[-1] == "P":
             my_array_last = np.array([1, 0, 0])
         elif my_history[-1] == "R":
@@ -481,6 +458,8 @@ UPDATE THIS
         elif my_history[-1] == "S":
             my_array_last = np.array([0, 0, 1])
 
+        # Convert the value of our play from two moves ago from a string into an array for the model to understand
+            # -> n = -2
         if my_history[-2] == "P":
             my_array_second_to_last = np.array([1, 0, 0])
         elif my_history[-2] == "R":
@@ -488,22 +467,14 @@ UPDATE THIS
         elif my_history[-2] == "S":
             my_array_second_to_last = np.array([0, 0, 1])
 
+        # Convert the value of our play from three moves ago from a string into an array for the model to understand
+            # -> n = -3
         if my_history[-3] == "P":
             my_array_third_to_last = np.array([1, 0, 0])
         elif my_history[-3] == "R":
             my_array_third_to_last = np.array([0, 1, 0])
         elif my_history[-3] == "S":
             my_array_third_to_last = np.array([0, 0, 1])
-
-
-
-
-
-
-
-
-
-
 
 
 
