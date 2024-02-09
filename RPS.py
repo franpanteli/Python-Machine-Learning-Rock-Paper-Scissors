@@ -297,6 +297,13 @@ INITIALISING THE NEURAL NETWORK:
                 metrics=["accuracy"]
             )
 
+            # We are writing the architecture of the model (the number of layers it should have), and then we are saving that architecture in another file 
+                # -> In Keras, you have to create the architecture of the model and store it in another file 
+                # -> And then later in the player function (the code in this file), when the model is trained, this file is called
+                # -> We are setting the basic architecture of the model -> and then we are gathering the data which should be used to train it, and format it in a 
+                # specific format
+                # -> The architecture of the model is stored in this file (model.h5) by Keras
+                # -> This file is later used in the code
             model.save("model.h5")
 
         else:
@@ -390,24 +397,24 @@ SETTING THE OUTPUT OF THE GUESS FUNCTION:
 CONVERTING THE RPS DATA OF THE OPPONENT INTO ARRAYS FOR TRAINING THE MODEL
 --------------------------------------------------------
 
-This code converts the opponent's RPS moves into arrays for model training:
-   -> It formats the opponent's moves for our machine learning model.
-   -> Operates in the three rounds and more regime.
-      -> Each game has three rounds.
-      -> 'else' implies operating in the three or more rounds regime.
-         -> We have sufficient data at this point for predictions and model training.
-   -> Converts opponent's moves (R, P, S) into arrays understood by the model.
-   -> Handles not just the opponent's last move but also from multiple moves ago.
+    This code converts the opponent's RPS moves into arrays for model training:
+    -> It formats the opponent's moves for our machine learning model
+    -> Operates in the three rounds and more regime
+        -> Each game has three rounds
+        -> 'else' implies operating in the three or more rounds regime
+            -> We have sufficient data at this point for predictions and model training
+    -> Converts opponent's moves (R, P, S) into arrays understood by the model
+    -> Handles not just the opponent's last move but also from multiple moves ago
 
-Storing the opponent's last move in an array:
-   Explanation:
-      -> Uses one-hot encoded arrays for the neural network.
-      -> Each element represents R, P, or S.
-      -> Targets the most recent play of the opponent (opponent_history[-1]).
-      -> Encodes array_last based on the last move (P, R, or S).
-      -> Outputs:
-         -> array_last: Encodes the last move in a 1's and 0's array.
-         -> last: Stores the value of R, P, or S as a number between 0 and 2.
+    Storing the opponent's last move in an array:
+    Explanation:
+        -> Uses one-hot encoded arrays for the neural network
+        -> Each element represents R, P, or S
+        -> Targets the most recent play of the opponent (opponent_history[-1])
+        -> Encodes array_last based on the last move (P, R, or S)
+        -> Outputs:
+            -> array_last: Encodes the last move in a 1's and 0's array
+            -> last: Stores the value of R, P, or S as a number between 0 and 2
 """
     else:
         # Encoding the opponent's recent plays into arrays and variables for model input
@@ -476,134 +483,190 @@ CONVERTING OUR RPS DATA INTO ARRAYS FOR TRAINING THE MODEL
         elif my_history[-3] == "S":
             my_array_third_to_last = np.array([0, 0, 1])
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 """
-UPDATE THIS 
+TRAINING THE MODEL  
 --------------------------------------------------------
 
-"""      
-        row_train = np.concatenate((my_array_third_to_last, my_array_second_to_last, array_third_to_last, array_second_to_last)).reshape(1, 1, 12)
-        row_prediction = np.concatenate((my_array_second_to_last, my_array_last, array_second_to_last, array_last)).reshape(1, 1, 12)
-        label_train = np.array(last).reshape(1, 1, 1)
+    Context:
+    -> There are three rounds per game
+    -> We want to train the model to predict what our next move should be
+    -> We can only train the model if we have data about our past moves and the past moves of the opponent
+    -> So, before the 3rd round was played, our moves are all something other than what the hand was, which won the previous match, and random if the winning match from the previous match was a draw
+    -> Now we are operating in the 3rd round and onwards regime
+    -> This means we have the data from the previous three rounds, which we can now use to train the model and predict what our move in the next round should be
+    -> The previous block of code took the data about our three previous plays and the data about the opponent's plays, each in R, P, S format, and converted it into arrays
+        -> E.g., [0, 1, 0] <- each number in here represents that either R, P, or S was played
+
+    This was moved into array format:
+        -> The final layer of the neural network is formatted in this way, so this is how the data about our previous plays and the opponent's previous plays have been formatted
+        -> We are going to use this data first to train the model and then to use the model to make a prediction about what the next move we should play is
+
+    The model was initialised with a sigmoid function to 'squash' these three output values in between 0 and 1:
+        -> Each of them (the outputs) will represent the probability that our next move should either be R, P, or S
+        -> We take the one with the largest probability, and this is the guess of the entire player function in this file
+        -> So the data which this block of code is using to train the model is formatted in this way; this is one-hot encoding
+        -> The previous block of code formatted the data about the opponent's and our previous plays in the same format as the model's output
+            -> This block of code is using that data about player history from the last three plays to train the model
+            -> The next one is using it to make predictions about what our next guess should be, using the approach explored above
+
+    row_train and row_prediction:
+
+        We are training the model on jumps:
+        -> we know three sets of moves -> our moves and the opponent's moves
+        -> from three rounds ago to two rounds ago 
+        -> then from two rounds ago to one round ago 
+        -> we are predicting what the opponent's move will be, going from the last round to the next one 
+            -> so we care about the jumps
+            -> the jump from the last to the next (in other words the output of the model)
+        -> to do that we need to know about the jumps which we've had -> these are the jumps which we're training the model on 
+            -> the jump from three rounds ago to two rounds ago 
+            -> then the jump from two rounds ago to one round ago 
+        -> in each of these jumps, we have two states -> the last round and the next round 
+            -> in the last round, we know what we played and we know what the opponent played
+            -> then in the round which was jumped to, we know what we played and we know what the opponent played
+
+        Each round when training the model has two 3x1 arrays:
+            -> we are trying to predict, given what the opponent played in the last round - what the opponent will play in the next round 
+            -> we are training the model on those jumps -> from one round to another
+            -> we don't care about any specific round -> just about the jumps to get from one round to another 
+            -> each round, we know what we played and we know what the opponent played
+                -> each of these plays (R, P or S) are stored in a 3x1 array 
+                -> this is called one-hot encoding
+                -> there are three rounds per game
+                -> for one round we know what our play was and we know what the opponent's play was <- two pieces of data, each stored in a 3x1 array 
         
+        Why this involves a 1x12 array: 
+            -> each round involves two 1x3 arrays, and we are training the model on jumps (to get from round to another)
+            -> we know what our move was and the opponent's move was from n=-3, -2, and -1 
+                -> for each of those, we have the two 1x3 arrays which are storing the move that was played by us or the opponent 
+            -> so the jumps we can train the model on are from n=-3 to n=-2, or from n=-2 to n=-1
+            -> there are two jumps we can use -> and for each one we have four 1x3 arrays 
+                -> a jump is from one round to another 
+                -> we are using these four 1x3 arrays per jump to train the model 
+                -> and we have two of these jumps which can be used to train the model 
+            -> because the aim is to take the previous play of the opponent and predict the next -> we are using these jumps to train the model 
+            -> two of them 
+            -> and each one contains four 1x3 arrays 
+            -> so each of those two variables -> row_train and row_prediction
+                -> one is from n=-3 to n=-2 and storing our play and the opponent's plays in each of those cases
+                -> then the other is from n=-2 to n=-1 and storing our play and the opponent's play
+                -> we have two different jumps which we are using to train the model 
+    
+    label_train:
+        -> when we use the model, we are predicting the next play of the opponent 
+        -> label_train takes the last play of the opponent and converts it into [[[1]]]
+        -> this is convention for training these models
+    
+    Loading the model:
+        model.h5 -> this is the file with the architecture of the model which we created earlier 
+                 -> we are loading the model which was created earlier 
+                 -> so that it can be trained on the data we have just formatted -> into the 1x12 format 
+                 -> this approach was determined from studying the example from the course material in TensorFlow
 
+    Training the model: 
+        The number of epochs is the amount of times we go over the same data to train the model on:
+            -> the epochs are the number of times which it's running over all of the data 
+            -> this is done to minimise the loss function 
+            -> going over the same data too many times means it can be overfit 
+            -> it's being trained 100 times -> on the same data 
+            -> the weights are being adjusted that number of times 
+            -> one epoch is one iteration through the dataset 
+            -> it can stop when the number of epochs is reached or when it reaches convergence criteria
+        
+        Other arguments when training the model:
+            -> if we want the model to print parameters it is outputting while training the model, we set this to one 
+            -> we also give the model the training data which was formatted above it 
+            -> the training data was formatted to be in the same shape as the number of nodes for the model 
+            -> the architecture of this model was designed above with this in mind 
+                -> the architecture of the model was first stored in an h5 file format using Keras
+                -> then the function was given guesses / outputs for the time in between starting to run and when it had enough data to be trained on 
+                -> then when the data to train the model on was gathered, it was formatted to fit the architecture of the model 
+                -> which was now being loaded back into the code and trained using the data
+                -> the next block of code is using this model to produce predictions
+"""
 
+    # for the training data of the model 
+    row_train = np.concatenate((my_array_third_to_last, my_array_second_to-last, array_third_to_last, array_second_to_last)).reshape(1, 1, 12)
+    row_prediction = np.concatenate((my_array_second_to_last, my_array_last, array_second_to_last, array_last)).reshape(1, 1, 12)
+    
+    # convention
+    label_train = np.array(last).reshape(1, 1, 1)
+    
+    # loading the model 
+    model = tf.keras.models.load_model("model.h5")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # training the model 
+    model.fit(row_train, label_train, epochs=100, verbose=0)
 
 """
-UPDATE THIS 
+USING THE MODEL TO MAKE PREDICTIONS 
 --------------------------------------------------------
 
+    The process we are using to make predictions is: 
+        -> predict the opponent's move <- we do this by using the first two lines of code in this block 
+        -> convert prediction to response 
+            -> we predict what the opponent will play
+            -> now we are returning the play which would beat that 
+            -> that is the guess which the function returns 
+        -> save and update the model
+            -> this is saved in a file called h5, which we originally used in Keras to set up the architecture of the neural networks we were using
+        -> record the response
+            -> adding the guess (output of the function) over what play we should make next to the history of different plays which we have made
+            -> this updates the array of all of our past plays with this play that the function is making 
+        -> return the chosen move
+            -> this outputs the guess of the function 
+            -> this is the move which we are going to play 
+    
+    Using the model to predict the opponent's next move:
+        -> the model is trained on a jump -> from round n=-3 to round n=-2
+        -> we are predicting the play that the opponent will give in this round 
+        -> we use the jump from n= -2 to n= -1 not to train the model, but as an input for its predictions
+        -> we are using the jump from n=-3 to n=-2 to train the model 
+        -> and then the jump from n= -2 to n= -1 to make predictions 
+        -> this is what row_prediction is -> the 1x12 array which stores all four of these arrays
+        -> then the output of the model is a 1x3 array of probabilities which have been normalized by a sigmoid function 
+            -> each of the values in that array represents the probability that the opponent's next move will either be R, P, or S 
+            -> so what we are doing in the next line (pred = ["P", "R", "S"][np.argmax(prediction)]) is taking whichever R, P, or S has the maximum probability
+            -> we are saying the opponent's next move will have the highest probability of being this 
+            -> and therefore, we will play the move which will destroy it 
+            -> in that 1x3 array -> then we are taking the index of that value with the highest probability and converting it into R, P, or S
+                -> this is our prediction for the opponent's move 
+        -> we are then saving the model 
+            -> we are using the model to predict the opponent's move
+            -> so once this is done, we are saving the output of the model 
+            -> when we set the architecture for the model, this was stored in the file h5 using Keras 
+            -> this was the same file that was used to create the model 
+            -> and now once the model has been used to make predictions here -> we are saving its history for future predictions/reference 
+    
+    Then we set the output of the guessing function:
+        -> we have the prediction about what the opponent's move in this round will be 
+            -> this is stored in the variable pred
+        -> we then have a block of booleans which sets our guess for this round to be whatever in RPS will win over the opponent's predicted move
+        -> this block of booleans stores our guess in the variable guess
+            -> this is then the output of the entire function 
+        -> we have predicted the opponent's next move for this round in the game
+        -> and then we are setting our move for this round in the game (the prediction for the model) to be whichever of R, P, or S beats this 
+        -> then outputting that as the result of the entire function (the move which we should make in this round of the game, which would result in us having 
+            the highest probability of us winning it)
+        -> only one jump was used to train the model -> to make it more accurate you would start training the model after more rounds of the game (rather than 3)
+            -> doing too many epochs (the number of times which gradient descent is performed on the same data) also runs the risk of overfitting the model 
+            -> we then output this guess 
+        -> the other thing which we are doing is saving the guess in the array which contains the history for all of our previous guesses 
+            -> this array is used as the input for the next time the function is called 
+            -> so the entire funciton is being used iteratively for each round of the game
+            -> but the history of the previous plays is remaining the same
+            -> the importance of updating the different values in the code as you go along
 """
-        model = tf.keras.models.load_model("model.h5")
-        model.fit(row_train, label_train, epochs=100, verbose=0)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-UPDATE THIS 
---------------------------------------------------------
-
-"""
+        # using the model to make the prediction 
         prediction = model.predict(row_prediction)
         pred = ["P", "R", "S"][np.argmax(prediction)]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-UPDATE THIS 
---------------------------------------------------------
-
-"""
+        # it's saving the output of that function after each time it's been used 
+            # -> and it's saving it into another file 
         model.save("model.h5")
 
-
-
-
-
-
-
-
-
-
-
-
-"""
-UPDATE THIS 
---------------------------------------------------------
-
-"""        
+        # -> we play the thing which will destroy whatever we think their move will be 
         if pred == "P":
             guess = "S"
         elif pred == "R":
@@ -611,25 +674,11 @@ UPDATE THIS
         elif pred == "S":
             guess = "R"
     
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-UPDATE THIS 
---------------------------------------------------------
-
-"""
-
+    # -> this adds the guess (the output of this function) to the array which stores all of our guesses for all time (since the function has been used in the terminal)
+        # -> it is playing recurrently 
+        # -> we are adding this guess to the array of all the guesses which the model has previously output 
+        # -> this list is used as an argument to the play function (in this document) in the next round of the game 
     my_history.append(guess)
-    return guess
 
-# %%
+    # -> return our play for the current round
+    return guess
