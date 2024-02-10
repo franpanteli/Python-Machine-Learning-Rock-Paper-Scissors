@@ -1,7 +1,7 @@
 # Python-Machine-Learning-Rock-Paper-Scissors
 ## Rock-Paper-Scissors AI Challenge
 
-This repository contains my work from the first freeCodeCamp project in its course called [Machine Learning with Python](https://www.freecodecamp.org/learn/machine-learning-with-python/). This project uses neural networks and machine learning in Python for a Rock Paper Scissors game, which uses TensorFlow to beat a random opponent for more than 60% of the games played. [This machine learning challenge](https://www.freecodecamp.org/learn/machine-learning-with-python/machine-learning-with-python-projects/rock-paper-scissors) involveed creating an AI player that competes against various opponents in the classic Rock-Paper-Scissors game, testing and refining strategies for success. 
+This repository contains my work from the first freeCodeCamp project in its course called [Machine Learning with Python](https://www.freecodecamp.org/learn/machine-learning-with-python/). This project uses neural networks and machine learning in Python for a Rock Paper Scissors game, which uses TensorFlow to beat a random opponent for more than 60% of the games played. [This machine learning challenge](https://www.freecodecamp.org/learn/machine-learning-with-python/machine-learning-with-python-projects/rock-paper-scissors) involved creating an AI player that competes against various opponents in the classic Rock-Paper-Scissors game, testing and refining strategies for success. 
 
 ## How to Play
 
